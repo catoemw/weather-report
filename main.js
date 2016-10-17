@@ -11,16 +11,12 @@ function fWrap () {
    return Array(30).join('=');
 }
 
-
-// CAPITALIZE DESCRIPTION
 function capitalize(string)  {  
   var words = string.split(' ');  
   var newWords = [];
-  words.forEach(function (value) {
-   newWords.push(value.charAt(0).toUpperCase() + value.slice(1));
-  });  
-   return newWords.join(' ');  
-} 
+  newWords.push(words[0].charAt(0).toUpperCase() + words[0].slice(1)); 
+  return newWords.join(' ');
+}  
 
 // CONVERT KELVIN TO FARENHEIDT
 function toF (value) {
@@ -53,24 +49,20 @@ function toCard (value) {
    }
 }
 
+function weatherInfo (city) {
+  return hWrap(city.name) + '\n' +
+    capitalize(city.weather[0].description) + '\n' +
+    'Temp: ' + toF(city.main.temp) + '\xB0F' + '\n' +
+    'Lo: ' + toF(city.main.temp_min) + '\xB0F' +
+    ', Hi: ' + toF(city.main.temp_max) + '\xB0F' + '\n' +
+    'Humidity: ' + city.main.humidity + '%' + '\n' +
+    'Wind: ' + toMPH(city.wind.speed) + ' MPH ' + toCard(city.wind.deg) + '\n' +
+    fWrap();
+}
+
 // WEATHER REPORT
-function report (location) {
-  var weather;
-  list.forEach(function (value) {
-   for (var prop in location) {
-      if (value[prop] === location[prop]) {
-         weather = hWrap(value.name) + '\n' +
-            capitalize(value.weather[0].description) + '\n' +
-            'Temp: ' + toF(value.main.temp) + '\xB0F' + '\n' +
-            'Lo: ' + toF(value.main.temp_min) + '\xB0F' +
-            ', Hi: ' + toF(value.main.temp_max) + '\xB0F' + '\n' +
-            'Humidity: ' + value.main.humidity + '%' + '\n' +
-            'Wind: ' + toMPH(value.wind.speed) + ' MPH ' + toCard(value.wind.deg) + '\n' +
-            fWrap();
-      }
-   }
-  });
-  return weather;
+function report (list) {
+  return list.map(weatherInfo);
 }
 
 // ALPHABETIZE
@@ -84,6 +76,8 @@ function alphOrder (array) {
    return sorted;
 }
 
+console.log(report(list).sort().join('\n'));
+
 // console.log(toCard(10));
 // console.log(report({name: 'Budapest XII. keruelet'}));
 // console.log(hWrap('Columbia') + '\n' + fWrap());
@@ -91,8 +85,116 @@ function alphOrder (array) {
 // console.log(list.map(report));
 
 // console.log(capitalize('vroom vroom'));
-console.log(alphOrder(list));
+// console.log(alphOrder(list));
 
+// AVERAGES -------------------------------
 
+// DESCRIPTIONS
+
+var descriptions = list.map(function (value) {
+  return value.weather[0].description;
+});
+
+var freq = descriptions.reduce(function (counts, desc) {
+  if (counts[desc] === undefined) { 
+      counts[desc] = 1;
+  } else {
+    counts[desc]++;
+  }
+  return counts;
+}, {});
+
+var avgCond;
+
+for (var prop in freq) {
+  if (!avgCond || (freq[prop] > freq[avgCond])) {
+    avgCond = prop;
+  }
+}
+
+// TEMPERATURE
+
+var temps = list.map(function (value) {
+  return value.main.temp;
+});
+
+var avgTemp = temps.reduce(function (prev, next) {
+  return prev += next;
+}) / list.length;
+
+// MINIMUM
+
+var minTemps = list.map(function (value) {
+  return value.main.temp_min;
+});
+
+var avgMin = minTemps.reduce(function (prev, next) {
+  return prev += next;
+}) / list.length;
+
+// MAXIMUM
+
+var maxTemps = list.map(function (value) {
+  return value.main.temp_max;
+});
+
+var avgMax = maxTemps.reduce(function (prev, next) {
+  return prev += next;
+}) / list.length;
+
+// HUMIDITY
+
+var humidities = list.map(function (value) {
+  return value.main.humidity;
+});
+
+var avgHum = humidities.reduce(function (prev, next) {
+  return prev += next;
+}) / list.length;
+
+// WIND SPEED/DIRECTION
+
+// SPEED
+
+var windSpeeds = list.map(function (value) {
+  return value.wind.speed;
+});
+
+var avgSpd = Math.round((windSpeeds.reduce(function (prev, next) {
+  return prev += next;
+}) / list.length) * 10) / 10;
+
+// DIRECTION
+
+var windDir = list.map(function (value) {
+  return value.wind.deg;
+});
+
+var avgDir = windDir.reduce(function (prev, next) {
+  return prev += next;
+}) / list.length;
+
+// AVERAGES
+
+var avgList = {
+   "name": "Averages",
+   "main": {
+      "temp": avgTemp,
+      "temp_min": avgMin,
+      "temp_max": avgMax,
+      "humidity": avgHum
+   },
+   "wind": {
+      "speed": avgSpd,
+      "deg": avgDir
+   },
+   "weather":[
+      {
+         "description": avgCond,
+      }
+   ]
+};
+
+console.log(weatherInfo(avgList));
 
 
